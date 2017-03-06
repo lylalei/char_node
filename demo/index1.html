@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>手写汉字</title>
+    <link rel="stylesheet" type="text/css" href="./css/semantic.css" />
+  </head>
+  <body>
+    <div id='writing'> 
+        <button @click="begin" :style="beginStyle" :class="beginClass" v-if="isbegin">开始写字</button>
+        <img src="./img/1.png" v-if="isbegin" :style="imgStyle"/>
+        <v-canvas :is_show="isShow"> </v-canvas>
+        <v-button :is_show="isShow"> </v-button>
+    </div>
+    <script type="text/javascript" src="./js/othBuild/bundle.js" ></script>
+  </body>
+</html>

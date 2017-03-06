@@ -4,7 +4,8 @@ var write = require('./writing');
 
 module.exports = function(bus, styles, img) {
     Vue.component('v-canvas', {
-        template : '<canvas> </canvas>',
+        template : '<canvas :style="{display : is_show}"> </canvas>',
+        props : ['is_show'],
         mounted : function() {
             // 钩子
             var W = write(this.$el, img);
@@ -26,8 +27,13 @@ module.exports = function(bus, styles, img) {
                             data.POS[key].pop();
                         }
                         W.getChar(data);
+                        W.end();
                     }
                 });
+            });
+            bus.$on('start', function(e) {
+                W.start();
+                W.clear();
             });
         }
     });

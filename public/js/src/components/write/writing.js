@@ -21,7 +21,7 @@ var config = {
     POS : []
 };
 
-var widthCanvas = 512;
+var widthCanvas = $(document.body).outerWidth();
 var heightCanvas = widthCanvas;
 
 module.exports = function(canvas, img) {
@@ -65,14 +65,16 @@ module.exports = function(canvas, img) {
                 $('body').on('touchmove', function(evt) {
                     // 固定页面
                     evt.preventDefault();
-                })
+                });
                 var screencanvas = function() {
                     // 这里宽高固定死了
                     ////////////////////////////////////
-                    // var width = $(document.body).outerWidth();
+                    widthCanvas = $(document.body).outerWidth();
+                    heightCanvas = widthCanvas;
                     canvas.width = widthCanvas;
                     canvas.height = heightCanvas;
                     funcObj.pane.qt(ctx);
+                    funcObj.drawAllGetChar(config.POS, config.POS.length, ctx);
                 };
                 setTimeout(function() {
                     //cordova的莫名bug，不出米字格，无语死了
@@ -194,8 +196,9 @@ module.exports = function(canvas, img) {
         mousedown : function(evt) {
             evtObj.lock = true;
             var info = {};
-            info.x = evt.pageX - evt.target.offsetLeft;
-            info.y = evt.pageY - evt.target.offsetTop;
+            var e = (evt.data && evt.data[0]) ? evt.touches[0] : evt;
+            info.x = e.pageX - e.target.offsetLeft;
+            info.y = e.pageY - e.target.offsetTop;
             info.t = new Date().getTime();
             info.l = false;
             funcObj.count.pushAll(config, info);
@@ -203,9 +206,10 @@ module.exports = function(canvas, img) {
         },
         mousemove : function(evt) {
             if(evtObj.lock) {
+                var e = (evt.data && evt.data[0]) ? evt.touches[0] : evt;
                 var info = {};
-                info.x = evt.pageX - evt.target.offsetLeft;
-                info.y = evt.pageY - evt.target.offsetTop;
+                info.x = e.pageX - e.target.offsetLeft;
+                info.y = e.pageY - e.target.offsetTop;
                 info.t = new Date().getTime();
                 info.l = true;
                 funcObj.count.pushAll(config, info, data.getData());
@@ -253,6 +257,10 @@ module.exports = function(canvas, img) {
         $canvas.on('mousemove', evtObj.mousemove);
         $canvas.on('mouseup', evtObj.mouseup);
         $canvas.on('mouseout', evtObj.mouseup);
+
+        $canvas.on('touchstart', [1], evtObj.mousedown);
+        $canvas.on('touchmove', [1], evtObj.mousemove);
+        $canvas.on('touchend', evtObj.mouseup);
     };
 
     // 解析DOM
@@ -274,22 +282,22 @@ module.exports = function(canvas, img) {
     // 初始化
     var init = function() {
         parseDOM();
-        bindEvt();
     };
 
     init();
 
     var destroy = function() {
-        canvas = null;
-        ctx = null;
         $canvas.off('mousedown', evtObj.mousedown);
         $canvas.off('mousemove', evtObj.mousemove);
         $canvas.off('mouseup', evtObj.mouseup);
         $canvas.off('mouseout', evtObj.mouseout);
+
+        $canvas.off('touchstart', evtObj.mousedown);
+        $canvas.off('touchmove', evtObj.mousemove);
+        $canvas.off('touchend', evtObj.mouseup);
     };
 
     var self = {
-        destroy : destroy,
         clear : function() {
             funcObj.clearCanvas(ctx);
             data.clear();
@@ -310,11 +318,17 @@ module.exports = function(canvas, img) {
             var charArea = 390;
             funcObj.clearCanvas(ctx);
             funcObj.posAllFix(char.POS, charArea, charArea, widthCanvas, widthCanvas);
-            // funcObj.drawAllGetChar(char.POS, char.POS.length, ctx);
             for(var key in char) {
                 config[key] = char[key];
             }
             config.currNum = 0;
+            funcObj.drawAllGetChar(char.POS, char.POS.length, ctx);
+        },
+        start : function() {
+            bindEvt();
+        },
+        end : function() {
+            destroy();
         }
     };
     return self;

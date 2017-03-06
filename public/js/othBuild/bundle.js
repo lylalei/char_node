@@ -19485,14 +19485,13 @@ var Vue = __webpack_require__(0);
 module.exports = function(bus) {
     Vue.component('v-button', {
         template : '\
-            <div :id="root" :style="{display : is_show}">\
-                <button type="button" :class="button" :style="buttonStyle" :num="pre" @click.stop="preCount"> 上一个 </button> \
-                <button type="button" :class="button" :style="buttonStyle" :page="pages" @click="getList"> 获取列表 </button> \
-                <button type="button" :class="button" :style="buttonStyle" @click="start"> 开始 </button> \
-                <button type="button" :class="button" :style="buttonStyle" :num="next" @click.stop="nextCount"> 下一个 </button> \
+            <div :id="root" >\
+                <button type="button" :class="button" :num="pre" @click.stop="preCount"> 上一个 </button> \
+                <button type="button" :class="button" :page="pages" @click="getList"> 获取列表 </button> \
+                <button type="button" :class="button" @click="start"> 开始 </button> \
+                <button type="button" :class="button" :num="next" @click.stop="nextCount"> 下一个 </button> \
             </div> \
         ',
-        props : ['is_show'],
         data : function() {
             return {
                 root : 'btn_root',
@@ -19501,13 +19500,6 @@ module.exports = function(bus) {
                 next : 1,
                 pre : -1,
                 button : 'ui button',
-                buttonStyle : {
-                    width : '23%',
-                    height : '100px'
-                },
-                btnStyle : {
-                    display : 'none'
-                },
                 classes : function(key) {
                     return key == this.next - 1 ? 'red' : 'black';
                 }
@@ -19531,7 +19523,7 @@ module.exports = function(bus) {
                 bus.$emit('char', this.chars[this.next - 1]);
             },
             start : function(e) {
-                bus.$emit('start', e);
+                // bus.$emit('start', e);
             },
             getList : function(e) {
                 var that = this;
@@ -19575,8 +19567,7 @@ var write = __webpack_require__(6);
 
 module.exports = function(bus, styles, img) {
     Vue.component('v-canvas', {
-        template : '<canvas :style="{display : is_show}"> </canvas>',
-        props : ['is_show'],
+        template : '<canvas> </canvas>',
         mounted : function() {
             // 钩子
             var W = write(this.$el, img);
@@ -19598,13 +19589,8 @@ module.exports = function(bus, styles, img) {
                             data.POS[key].pop();
                         }
                         W.getChar(data);
-                        W.end();
                     }
                 });
-            });
-            bus.$on('start', function(e) {
-                W.start();
-                W.clear();
             });
         }
     });
@@ -19843,7 +19829,7 @@ var config = {
     POS : []
 };
 
-var widthCanvas = $(document.body).outerWidth();
+var widthCanvas = 512;
 var heightCanvas = widthCanvas;
 
 module.exports = function(canvas, img) {
@@ -19891,12 +19877,10 @@ module.exports = function(canvas, img) {
                 var screencanvas = function() {
                     // 这里宽高固定死了
                     ////////////////////////////////////
-                    widthCanvas = $(document.body).outerWidth();
-                    heightCanvas = widthCanvas;
+                    // var width = $(document.body).outerWidth();
                     canvas.width = widthCanvas;
                     canvas.height = heightCanvas;
                     funcObj.pane.qt(ctx);
-                    funcObj.drawAllGetChar(config.POS, config.POS.length, ctx);
                 };
                 setTimeout(function() {
                     //cordova的莫名bug，不出米字格，无语死了
@@ -20104,11 +20088,14 @@ module.exports = function(canvas, img) {
     // 初始化
     var init = function() {
         parseDOM();
+        bindEvt();
     };
 
     init();
 
     var destroy = function() {
+        canvas = null;
+        ctx = null;
         $canvas.off('mousedown', evtObj.mousedown);
         $canvas.off('mousemove', evtObj.mousemove);
         $canvas.off('mouseup', evtObj.mouseup);
@@ -20120,37 +20107,32 @@ module.exports = function(canvas, img) {
     };
 
     var self = {
+        destroy : destroy,
         clear : function() {
             funcObj.clearCanvas(ctx);
             data.clear();
             config.currNum = 0;
         },
         cancel : function() {
-            funcObj.clearCanvas(ctx);
-            data.clear();
-            if(config.currNum == 0) {return ;}
-            config.currNum--;
-            funcObj.drawAllGetChar(config.POS, config.currNum, ctx);
-
-            // data.cancel('l');
             // funcObj.clearCanvas(ctx);
-            // funcObj.drawAllPoint(config, data.getArrData(), data.getCurLen());
+            // data.clear();
+            // if(config.currNum == 0) {return ;}
+            // config.currNum--;
+            // funcObj.drawAllGetChar(config.POS, config.currNum, ctx);
+
+            data.cancel('l');
+            funcObj.clearCanvas(ctx);
+            funcObj.drawAllPoint(config, data.getArrData(), data.getCurLen());
         },
         getChar : function(char) {
             var charArea = 390;
             funcObj.clearCanvas(ctx);
             funcObj.posAllFix(char.POS, charArea, charArea, widthCanvas, widthCanvas);
+            // funcObj.drawAllGetChar(char.POS, char.POS.length, ctx);
             for(var key in char) {
                 config[key] = char[key];
             }
             config.currNum = 0;
-            funcObj.drawAllGetChar(char.POS, char.POS.length, ctx);
-        },
-        start : function() {
-            bindEvt();
-        },
-        end : function() {
-            destroy();
         }
     };
     return self;
@@ -20171,37 +20153,13 @@ var bus = new Vue();
 
 btn(bus);
 var image = new Image();
-image.src = "../../img/model-black.png";//笔刷模型
-// image.src = "./img/model-black.png";//笔刷模型
+// image.src = "../../img/model-black.png";//笔刷模型
+image.src = "./img/model-black.png";//笔刷模型
 var styles = {};
 write(bus, styles, image);
 
 var app = new Vue({
     el : '#writing',
-    data : {
-        isShow : 'none',
-        isbegin : true,
-        beginClass : 'ui button',
-        beginStyle : {
-            width : '80%',
-            height : '20%',
-            position : 'absolute',
-            top : '40%',
-            left : '10%'
-        },
-        imgStyle : {
-            height : '100%'
-        }
-    },
-    methods : {
-        begin : function(evt) {
-            this.isbegin = false;
-            this.isShow = '';
-        }
-    },
-    mounted : function() {
-        document.body.style.backgroundColor = 'RGB(246, 244, 235)';
-    }
 });
 
 

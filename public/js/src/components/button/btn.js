@@ -4,15 +4,14 @@ var Vue = require('../../../lib/vue');
 module.exports = function(bus) {
     Vue.component('v-button', {
         template : '\
-            <div :id="root" >\
-                <button type="button" @click="clear" > 清除 </button> \
-                <button type="button" @click="cancel"> 撤销 </button> \
-                <button type="button" :page="pages" @click="getList"> 获取列表 </button> \
-                <button type="button" :num="pre" @click.stop="preCount()"> 上一个 </button> \
-                <button type="button" :num="next" @click.stop="nextCount"> 下一个 </button> \
-                <span v-for="(char , key) in chars" :style="{color : classes(key)}" >{{key}}:{{char}}</span>\
+            <div :id="root" :style="{display : is_show}">\
+                <button type="button" :class="button" :style="buttonStyle" :num="pre" @click.stop="preCount"> 上一个 </button> \
+                <button type="button" :class="button" :style="buttonStyle" :page="pages" @click="getList"> 获取列表 </button> \
+                <button type="button" :class="button" :style="buttonStyle" @click="start"> 开始 </button> \
+                <button type="button" :class="button" :style="buttonStyle" :num="next" @click.stop="nextCount"> 下一个 </button> \
             </div> \
         ',
+        props : ['is_show'],
         data : function() {
             return {
                 root : 'btn_root',
@@ -20,10 +19,18 @@ module.exports = function(bus) {
                 chars : [],
                 next : 1,
                 pre : -1,
+                button : 'ui button',
+                buttonStyle : {
+                    width : '23%',
+                    height : '100px'
+                },
+                btnStyle : {
+                    display : 'none'
+                },
                 classes : function(key) {
                     return key == this.next - 1 ? 'red' : 'black';
                 }
-            }
+            };
         },
         methods : {
             preCount : function() {
@@ -42,11 +49,8 @@ module.exports = function(bus) {
                 this.next++;
                 bus.$emit('char', this.chars[this.next - 1]);
             },
-            clear : function(e) {
-                bus.$emit('clear', e);
-            },
-            cancel : function(e) {
-                bus.$emit('cancel', e);
+            start : function(e) {
+                bus.$emit('start', e);
             },
             getList : function(e) {
                 var that = this;

@@ -1,4 +1,6 @@
 <div id='writing'> 
-    <v-button> </v-button>
-    <v-canvas> </v-canvas>
+    <button @click="begin" :style="beginStyle" :class="beginClass" v-if="isbegin">开始写字</button>
+    <img src="./img/1.png" v-if="isbegin" :style="imgStyle"/>
+    <v-canvas :is_show="isShow"> </v-canvas>
+    <v-button :is_show="isShow"> </v-button>
 </div>

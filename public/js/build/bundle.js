@@ -19890,7 +19890,6 @@ module.exports = function(canvas, img) {
                 });
                 var screencanvas = function() {
                     // 这里宽高固定死了
-                    ////////////////////////////////////
                     widthCanvas = $(document.body).outerWidth();
                     heightCanvas = widthCanvas;
                     canvas.width = widthCanvas;
@@ -20008,6 +20007,15 @@ module.exports = function(canvas, img) {
             for(var k in pos) {
                 this.posFix(pos[k], posw, posh, w, h);
             }
+        },
+        posAllReduce : function(x, y, rule) {
+            var len = x.length;
+            var gap = len - rule;
+            var dis = parseInt(len / gap) - 1;
+            for(var i = 0; i < gap; i++) {
+                x.splice(i * dis - i, 1);
+                y.splice(i * dis - i, 1);
+            }
         }
     };
 
@@ -20043,6 +20051,10 @@ module.exports = function(canvas, img) {
             if(evtObj.lock) {
                 var info = data.getArrData();
                 var len = info.x.length;
+                if(len > 200) {
+                    funcObj.posAllReduce(info.x, info.y, 200);
+                    len = info.x.length;
+                }
                 var xy = [];
                 for(var i = 0; i < len; i++) {
                     xy.push(info.x[i]);
@@ -20053,8 +20065,7 @@ module.exports = function(canvas, img) {
                     url: "/sendData/getret",
                     data: "zi=" + config.ZI + "&no=" + config.currNum + "&xy=" + xy.join('/') + '/',
                     success : function(msg) {
-                        // if(parseInt(msg)) {
-                        if(Math.random() > 0.5) {
+                        if(parseInt(msg)) {
                             if(config.currNum >= config.Num) {return ;}
                             config.currNum++;
                             data.clear();

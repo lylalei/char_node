@@ -24,7 +24,9 @@ var app = new Vue({
             height : '20%',
             position : 'absolute',
             top : '40%',
-            left : '10%'
+            left : '10%',
+            maxWidth : '512px',
+            minWidth : '450px'
         },
         imgStyle : {
             height : '100%'

@@ -19485,7 +19485,7 @@ var Vue = __webpack_require__(0);
 module.exports = function(bus) {
     Vue.component('v-button', {
         template : '\
-            <div :id="root" :style="{display : is_show}">\
+            <div :id="root" :style="{display : is_show, maxWidth:maxWidth, minWidth:minWidth}">\
                 <button type="button" :class="button" :style="buttonStyle" :num="pre" @click.stop="preCount"> 上一个 </button> \
                 <button type="button" :class="button" :style="buttonStyle" :page="pages" @click="getList"> 获取列表 </button> \
                 <button type="button" :class="button" :style="buttonStyle" @click="start"> 开始 </button> \
@@ -19501,6 +19501,8 @@ module.exports = function(bus) {
                 next : 1,
                 pre : -1,
                 button : 'ui button',
+                maxWidth : '512px',
+                minWidth : '450px',
                 buttonStyle : {
                     width : '23%',
                     height : '100px'
@@ -19843,8 +19845,11 @@ var config = {
     POS : []
 };
 
-var widthCanvas = $(document.body).outerWidth();
+var clientWidth = $(document.body).outerWidth();
+var widthCanvas = Math.min(Math.max(clientWidth, 450), 512);
 var heightCanvas = widthCanvas;
+var charAreaW = 390;
+var charAreaH = charAreaW;
 
 module.exports = function(canvas, img) {
 
@@ -19890,7 +19895,8 @@ module.exports = function(canvas, img) {
                 });
                 var screencanvas = function() {
                     // 这里宽高固定死了
-                    widthCanvas = $(document.body).outerWidth();
+                    var clientWidth = $(document.body).outerWidth();
+                    widthCanvas = Math.min(Math.max(clientWidth, 450), 512);
                     heightCanvas = widthCanvas;
                     canvas.width = widthCanvas;
                     canvas.height = heightCanvas;
@@ -20060,6 +20066,7 @@ module.exports = function(canvas, img) {
                     xy.push(info.x[i]);
                     xy.push(info.y[i]);
                 }
+                funcObj.posAllFix(xy, widthCanvas, heightCanvas, charAreaW, charAreaH);
                 $.ajax({
                     type: "GET",
                     url: "/sendData/getret",
@@ -20148,9 +20155,8 @@ module.exports = function(canvas, img) {
             // funcObj.drawAllPoint(config, data.getArrData(), data.getCurLen());
         },
         getChar : function(char) {
-            var charArea = 390;
             funcObj.clearCanvas(ctx);
-            funcObj.posAllFix(char.POS, charArea, charArea, widthCanvas, widthCanvas);
+            funcObj.posAllFix(char.POS, charAreaW, charAreaH, widthCanvas, heightCanvas);
             for(var key in char) {
                 config[key] = char[key];
             }
@@ -20198,7 +20204,9 @@ var app = new Vue({
             height : '20%',
             position : 'absolute',
             top : '40%',
-            left : '10%'
+            left : '10%',
+            maxWidth : '512px',
+            minWidth : '450px'
         },
         imgStyle : {
             height : '100%'

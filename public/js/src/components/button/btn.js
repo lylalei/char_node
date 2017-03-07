@@ -4,7 +4,7 @@ var Vue = require('../../../lib/vue');
 module.exports = function(bus) {
     Vue.component('v-button', {
         template : '\
-            <div :id="root" :style="{display : is_show}">\
+            <div :id="root" :style="{display : is_show, maxWidth:maxWidth, minWidth:minWidth}">\
                 <button type="button" :class="button" :style="buttonStyle" :num="pre" @click.stop="preCount"> 上一个 </button> \
                 <button type="button" :class="button" :style="buttonStyle" :page="pages" @click="getList"> 获取列表 </button> \
                 <button type="button" :class="button" :style="buttonStyle" @click="start"> 开始 </button> \
@@ -20,6 +20,8 @@ module.exports = function(bus) {
                 next : 1,
                 pre : -1,
                 button : 'ui button',
+                maxWidth : '512px',
+                minWidth : '450px',
                 buttonStyle : {
                     width : '23%',
                     height : '100px'

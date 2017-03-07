@@ -21,8 +21,11 @@ var config = {
     POS : []
 };
 
-var widthCanvas = $(document.body).outerWidth();
+var clientWidth = $(document.body).outerWidth();
+var widthCanvas = Math.min(Math.max(clientWidth, 450), 512);
 var heightCanvas = widthCanvas;
+var charAreaW = 390;
+var charAreaH = charAreaW;
 
 module.exports = function(canvas, img) {
 
@@ -68,7 +71,8 @@ module.exports = function(canvas, img) {
                 });
                 var screencanvas = function() {
                     // 这里宽高固定死了
-                    widthCanvas = $(document.body).outerWidth();
+                    var clientWidth = $(document.body).outerWidth();
+                    widthCanvas = Math.min(Math.max(clientWidth, 450), 512);
                     heightCanvas = widthCanvas;
                     canvas.width = widthCanvas;
                     canvas.height = heightCanvas;
@@ -238,6 +242,7 @@ module.exports = function(canvas, img) {
                     xy.push(info.x[i]);
                     xy.push(info.y[i]);
                 }
+                funcObj.posAllFix(xy, widthCanvas, heightCanvas, charAreaW, charAreaH);
                 $.ajax({
                     type: "GET",
                     url: "/sendData/getret",
@@ -326,9 +331,8 @@ module.exports = function(canvas, img) {
             // funcObj.drawAllPoint(config, data.getArrData(), data.getCurLen());
         },
         getChar : function(char) {
-            var charArea = 390;
             funcObj.clearCanvas(ctx);
-            funcObj.posAllFix(char.POS, charArea, charArea, widthCanvas, widthCanvas);
+            funcObj.posAllFix(char.POS, charAreaW, charAreaH, widthCanvas, heightCanvas);
             for(var key in char) {
                 config[key] = char[key];
             }

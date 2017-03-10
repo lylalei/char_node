@@ -1,85 +1,147 @@
 var $ = require('jquery');
 var Vue = require('../../../lib/vue');
 
+var MAXNUM = 100;//最大页数
+var INITNUM = parseInt(Math.random() * MAXNUM);//随机的初始化页数
+var POS = 0;//汉子的游标
+var commonBtn = 'medium  ui button';
+var loadingBtn = 'medium  loading ui button';
+
 module.exports = function(bus) {
+
+    var charlist = function(page, that, pre) {
+        if(pre) {
+            swal({
+                title: "请求列表",
+                type : 'success',
+                text: "正在获取列表汉字，请稍后。。。",
+                timer: 1500,
+                showConfirmButton: false
+            }); 
+        }
+        $.ajax({
+            type: "GET",
+            data: "id=" + page,
+            dataType: "jsonp",
+            url: $CONFIG['getlist'],
+            success : function(msg) {
+                if(pre == 1) {
+                    var tmp = msg.split('-');
+                    that.chars = tmp.concat(that.chars);
+                    POS = tmp.length - 1;//POS修正
+                } else {
+                    that.chars = that.chars.concat(msg.split('-'));
+                }
+                bus.$emit('char', that.chars[POS]);
+                that.startText = '开始';
+                that.preClass = commonBtn;
+                that.nextClass = commonBtn;
+                that.startClass = commonBtn;
+            },
+            jsonpCallback : 'sendData'
+        });
+    };
+
     Vue.component('v-button', {
         template : '\
-            <div :id="root" :style="{display : is_show}">\
-                <button type="button" :class="button" :style="buttonStyle" :num="pre" @click.stop="preCount"> 上一个 </button> \
-                <button type="button" :class="button" :style="buttonStyle" :page="pages" @click="getList"> 获取列表 </button> \
-                <button type="button" :class="button" :style="buttonStyle" @click="start"> 开始 </button> \
-                <button type="button" :class="button" :style="buttonStyle" :num="next" @click.stop="nextCount"> 下一个 </button> \
+            <div :id="root" :style="divStyle" >\
+                <button type="button" :class="preClass" :style="buttonStyle" :num="pre" @click.stop="preCount"> 上一个 </button> \
+                <button type="button" :class="startClass" :style="buttonStyle" @click="start" :id="startWrite"> {{startText}} </button> \
+                <button type="button" :class="nextClass" :style="buttonStyle" :num="next" @click.stop="nextCount"> 下一个 </button> \
             </div> \
         ',
         props : ['is_show'],
         data : function() {
+            var clientWidth = $(document.body).outerWidth();
+            var clientHeight = $(document.body).outerHeight();
+            var widthCanvas = clientHeight - 72 /*50位底部的按钮高度和22的上下padding*/< clientWidth ? clientHeight - 72 : clientWidth;
             return {
                 root : 'btn_root',
+                startWrite : 'startWrite',
                 pages : 0,
                 chars : [],
-                next : 1,
-                pre : -1,
-                button : 'ui button',
+                next : INITNUM + 1,
+                pre : INITNUM - 1,
+                preClass : commonBtn,
+                nextClass : commonBtn,
+                startClass : commonBtn,
+                startText : '开始',
                 buttonStyle : {
-                    width : '23%',
-                    height : '100px'
+                    width : '32%',
+                    height : '50px'
                 },
-                btnStyle : {
-                    display : 'none'
-                },
-                classes : function(key) {
-                    return key == this.next - 1 ? 'red' : 'black';
+                divStyle : {
+                    display : this.is_show ? '' : 'none',
+                    minWidth : '400px',
+                    maxWidth : widthCanvas + 'px'
                 }
             };
         },
+        watch : {
+            is_show : function() {
+                this.divStyle.display = this.is_show ? '' : 'none';
+                $(this.$el).transition('horizontal flip');
+            }
+        },
         methods : {
-            preCount : function() {
-                if(this.pre == -1) {
+            preCount : function(e) {
+                this.preClass = loadingBtn;
+                $(e.target).transition('pulse');
+                if(--POS < 0) {
+                    if(this.pre == -1) {
+                        swal({
+                            title: "警告",
+                            type : 'warning',
+                            text: "已经是第一个汉字了，请往下翻页！",
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        ++POS;
+                        this.preClass = commonBtn;
+                        return ;
+                    }
+                    charlist(this.pre--, this, 1);
                     return ;
                 }
-                this.next--;
-                this.pre--;
-                bus.$emit('char', this.chars[this.next - 1]);
+                bus.$emit('char', this.chars[POS]);
+                this.preClass = commonBtn;
+                this.startText = '开始';
             },
-            nextCount : function() {
-                if(this.next >= this.chars.length) {
+            nextCount : function(e) {
+                this.nextClass = loadingBtn;
+                $(e.target).transition('pulse');
+                if(++POS >= this.chars.length) {
+                    if(this.next > 100) {
+                       swal({
+                            title: "警告",
+                            type : 'warning',
+                            text: "已经是第一个汉字了，请往下翻页！",
+                            timer: 1500,
+                            showConfirmButton: false
+                        }); 
+                        --POS;
+                        this.nextClass = commonBtn;
+                        return ;
+                    }
+                    charlist(this.next++, this, 2);
                     return ;
                 }
-                this.pre++;
-                this.next++;
-                bus.$emit('char', this.chars[this.next - 1]);
+                bus.$emit('char', this.chars[POS]);
+                this.nextClass = commonBtn;
+                this.startText = '开始';
             },
             start : function(e) {
+                if(this.startText == '已开始') {
+                      $(e.target).transition('tada');
+                      return ;
+                }
+                $(e.target).transition('pulse');
                 bus.$emit('start', e);
-            },
-            getList : function(e) {
-                var that = this;
-                that.next = 1;
-                that.pre = -1;
-                $.ajax({
-                    type: "GET",
-                    data: "id=" + (++this.pages),
-                    url: "/sendData/getlist",
-                    success : function(msg) {
-                        that.chars = [];//一个大坑，这里不来一下，view不更新
-                        $.merge(that.chars, msg.split('-'));
-                        bus.$emit('char', that.chars[that.next - 1]);
-                    }
-                });
+                this.startText = '已开始';
             }
         },
         mounted : function() {
-            var that = this;
-            $.ajax({
-                type: "GET",
-                data: "id=0",
-                url: "/sendData/getlist",
-                success : function(msg) {
-                    that.chars = [];//一个大坑，这里不来一下，view不更新
-                    $.merge(that.chars, msg.split('-'));
-                    bus.$emit('char', that.chars[that.next - 1]);
-                }
-            });            
+            charlist(INITNUM, this, 0);
         }
     });
 };

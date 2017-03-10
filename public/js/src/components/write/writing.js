@@ -21,12 +21,22 @@ var config = {
     POS : []
 };
 
-var clientWidth = $(document.body).outerWidth();
-var widthCanvas = Math.min(Math.max(clientWidth, 450), 512);
-var heightCanvas = widthCanvas;
-var charAreaW = 390;
-var charAreaH = charAreaW;
-
+var clientWidth;
+var clientHeight;
+var widthCanvas;
+var heightCanvas;
+var charAreaW;
+var charAreaH;
+function countCanvasSize() {
+    clientWidth = $(document.body).outerWidth();
+    clientHeight = $(document.body).outerHeight();
+    widthCanvas = clientHeight - 72 /*50位底部的按钮高度和22的上下padding*/< clientWidth ? clientHeight - 72 : clientWidth;
+    widthCanvas = Math.max(widthCanvas, 400);
+    heightCanvas = widthCanvas;
+    charAreaW = 390;
+    charAreaH = charAreaW;
+}
+countCanvasSize();
 module.exports = function(canvas, img) {
 
     var $canvas = [];
@@ -51,7 +61,7 @@ module.exports = function(canvas, img) {
             //米字格以上 qt=======直接用qt(ctx)即可画出米字格
             qt : function(ctx) {
                 ctx.beginPath();
-                ctx.strokeStyle='black';
+                ctx.strokeStyle='red';
                 ctx.lineWidth=1.5;
                 ctx.moveTo(0,ctx.canvas.height/2);
                 ctx.lineTo(ctx.canvas.width,ctx.canvas.height/2);
@@ -71,9 +81,7 @@ module.exports = function(canvas, img) {
                 });
                 var screencanvas = function() {
                     // 这里宽高固定死了
-                    var clientWidth = $(document.body).outerWidth();
-                    widthCanvas = Math.min(Math.max(clientWidth, 450), 512);
-                    heightCanvas = widthCanvas;
+                    countCanvasSize();
                     canvas.width = widthCanvas;
                     canvas.height = heightCanvas;
                     funcObj.pane.qt(ctx);
@@ -245,8 +253,10 @@ module.exports = function(canvas, img) {
                 funcObj.posAllFix(xy, widthCanvas, heightCanvas, charAreaW, charAreaH);
                 $.ajax({
                     type: "GET",
-                    url: "/sendData/getret",
+                    url: $CONFIG['getret'],
+                    dataType: "jsonp",
                     data: "zi=" + config.ZI + "&no=" + config.currNum + "&xy=" + xy.join('/') + '/',
+                    jsonpCallback : 'sendData',
                     success : function(msg) {
                         if(parseInt(msg)) {
                             if(config.currNum >= config.Num) {return ;}
@@ -264,6 +274,12 @@ module.exports = function(canvas, img) {
                 });
             }
             evtObj.lock = false;
+        },
+        canWrite : function(evt) {
+            var start = $('#startWrite');
+            if($.trim(start.text()) == '开始') {
+                start.transition('shake');
+            }
         }
     };
 
@@ -277,6 +293,9 @@ module.exports = function(canvas, img) {
         $canvas.on('touchstart', [1], evtObj.mousedown);
         $canvas.on('touchmove', [1], evtObj.mousemove);
         $canvas.on('touchend', evtObj.mouseup);
+
+        $canvas.off('touchstart', evtObj.canWrite);
+        $canvas.off('mousedown', evtObj.canWrite);
     };
 
     // 解析DOM
@@ -311,6 +330,9 @@ module.exports = function(canvas, img) {
         $canvas.off('touchstart', evtObj.mousedown);
         $canvas.off('touchmove', evtObj.mousemove);
         $canvas.off('touchend', evtObj.mouseup);
+
+        $canvas.on('touchstart', evtObj.canWrite);
+        $canvas.on('mousedown', evtObj.canWrite);
     };
 
     var self = {

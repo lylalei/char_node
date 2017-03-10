@@ -1,2 +1,2 @@
-hanziServer.exe -http 8080 ziinfo.txt
+hanziServer.exe -http 8081 Final.txt
 

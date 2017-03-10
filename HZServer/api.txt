@@ -1,4 +1,4 @@
 WEBAPI：
 1）http://127.0.0.1:8080/getlist?id=0
 2) http://127.0.0.1:8080/getinfo?zi=大
-3）http://127.0.0.1:8080/getret?zi=大&no=0&xy=
+3）http://127.0.0.1:8080/getret?zi=大&no=0&xy=[[30/39/500/39@]]

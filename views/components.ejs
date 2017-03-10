@@ -1,6 +1,6 @@
 <div id='writing'> 
-    <button @click="begin" :style="beginStyle" :class="beginClass" v-if="isbegin">开始写字</button>
-    <img src="./img/1.png" v-if="isbegin" :style="imgStyle"/>
+    <v-begin  :is_show="isShow" @cust="custShowFunc"> </v-begin>
+    <!--擦，这里的自定义事件中间不能大写。。。。。-->
     <v-canvas :is_show="isShow"> </v-canvas>
     <v-button :is_show="isShow"> </v-button>
 </div>

@@ -21,9 +21,22 @@ var config = {
     POS : []
 };
 
-var widthCanvas = $(document.body).outerWidth();
-var heightCanvas = widthCanvas;
-
+var clientWidth;
+var clientHeight;
+var widthCanvas;
+var heightCanvas;
+var charAreaW;
+var charAreaH;
+function countCanvasSize() {
+    clientWidth = $(document.body).outerWidth();
+    clientHeight = $(document.body).outerHeight();
+    widthCanvas = clientHeight - 72 /*50位底部的按钮高度和22的上下padding*/< clientWidth ? clientHeight - 72 : clientWidth;
+    widthCanvas = Math.max(widthCanvas, 400);
+    heightCanvas = widthCanvas;
+    charAreaW = 390;
+    charAreaH = charAreaW;
+}
+countCanvasSize();
 module.exports = function(canvas, img) {
 
     var $canvas = [];
@@ -48,7 +61,7 @@ module.exports = function(canvas, img) {
             //米字格以上 qt=======直接用qt(ctx)即可画出米字格
             qt : function(ctx) {
                 ctx.beginPath();
-                ctx.strokeStyle='black';
+                ctx.strokeStyle='red';
                 ctx.lineWidth=1.5;
                 ctx.moveTo(0,ctx.canvas.height/2);
                 ctx.lineTo(ctx.canvas.width,ctx.canvas.height/2);
@@ -68,9 +81,7 @@ module.exports = function(canvas, img) {
                 });
                 var screencanvas = function() {
                     // 这里宽高固定死了
-                    ////////////////////////////////////
-                    widthCanvas = $(document.body).outerWidth();
-                    heightCanvas = widthCanvas;
+                    countCanvasSize();
                     canvas.width = widthCanvas;
                     canvas.height = heightCanvas;
                     funcObj.pane.qt(ctx);
@@ -186,6 +197,15 @@ module.exports = function(canvas, img) {
             for(var k in pos) {
                 this.posFix(pos[k], posw, posh, w, h);
             }
+        },
+        posAllReduce : function(x, y, rule) {
+            var len = x.length;
+            var gap = len - rule;
+            var dis = parseInt(len / gap) - 1;
+            for(var i = 0; i < gap; i++) {
+                x.splice(i * dis - i, 1);
+                y.splice(i * dis - i, 1);
+            }
         }
     };
 
@@ -221,18 +241,24 @@ module.exports = function(canvas, img) {
             if(evtObj.lock) {
                 var info = data.getArrData();
                 var len = info.x.length;
+                if(len > 200) {
+                    funcObj.posAllReduce(info.x, info.y, 200);
+                    len = info.x.length;
+                }
                 var xy = [];
                 for(var i = 0; i < len; i++) {
                     xy.push(info.x[i]);
                     xy.push(info.y[i]);
                 }
+                funcObj.posAllFix(xy, widthCanvas, heightCanvas, charAreaW, charAreaH);
                 $.ajax({
                     type: "GET",
-                    url: "/sendData/getret",
+                    url: $CONFIG['getret'],
+                    dataType: "jsonp",
                     data: "zi=" + config.ZI + "&no=" + config.currNum + "&xy=" + xy.join('/') + '/',
+                    jsonpCallback : 'sendData',
                     success : function(msg) {
-                        // if(parseInt(msg)) {
-                        if(Math.random() > 0.5) {
+                        if(parseInt(msg)) {
                             if(config.currNum >= config.Num) {return ;}
                             config.currNum++;
                             data.clear();
@@ -248,6 +274,12 @@ module.exports = function(canvas, img) {
                 });
             }
             evtObj.lock = false;
+        },
+        canWrite : function(evt) {
+            var start = $('#startWrite');
+            if($.trim(start.text()) == '开始') {
+                start.transition('shake');
+            }
         }
     };
 
@@ -261,6 +293,9 @@ module.exports = function(canvas, img) {
         $canvas.on('touchstart', [1], evtObj.mousedown);
         $canvas.on('touchmove', [1], evtObj.mousemove);
         $canvas.on('touchend', evtObj.mouseup);
+
+        $canvas.off('touchstart', evtObj.canWrite);
+        $canvas.off('mousedown', evtObj.canWrite);
     };
 
     // 解析DOM
@@ -295,6 +330,9 @@ module.exports = function(canvas, img) {
         $canvas.off('touchstart', evtObj.mousedown);
         $canvas.off('touchmove', evtObj.mousemove);
         $canvas.off('touchend', evtObj.mouseup);
+
+        $canvas.on('touchstart', evtObj.canWrite);
+        $canvas.on('mousedown', evtObj.canWrite);
     };
 
     var self = {
@@ -315,9 +353,8 @@ module.exports = function(canvas, img) {
             // funcObj.drawAllPoint(config, data.getArrData(), data.getCurLen());
         },
         getChar : function(char) {
-            var charArea = 390;
             funcObj.clearCanvas(ctx);
-            funcObj.posAllFix(char.POS, charArea, charArea, widthCanvas, widthCanvas);
+            funcObj.posAllFix(char.POS, charAreaW, charAreaH, widthCanvas, heightCanvas);
             for(var key in char) {
                 config[key] = char[key];
             }

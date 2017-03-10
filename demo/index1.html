@@ -4,13 +4,21 @@
     <meta charset="utf-8">
     <title>手写汉字</title>
     <link rel="stylesheet" type="text/css" href="./css/semantic.css" />
+    <link rel="stylesheet" type="text/css" href="./css/sweetalert2.min.css" />
+    <script type="text/javascript" src="./js/lib/sweetalert2.min.js" ></script>
+    <script>    
+      $CONFIG = {};
+      $CONFIG['getlist'] = "http://localhost:8081/getlist";
+      $CONFIG['getinfo'] = "http://localhost:8081/getinfo";
+      $CONFIG['getret'] = "http://localhost:8081/getret";
+    </script>
   </head>
   <body>
     <div id='writing'> 
-        <button @click="begin" :style="beginStyle" :class="beginClass" v-if="isbegin">开始写字</button>
-        <img src="./img/1.png" v-if="isbegin" :style="imgStyle"/>
-        <v-canvas :is_show="isShow"> </v-canvas>
-        <v-button :is_show="isShow"> </v-button>
+        <v-begin  :is_show="isShow" @cust="custShowFunc"> </v-begin>
+        <!--擦，这里的自定义事件中间不能大写。。。。。-->
+        <v-canvas :is_show="isShow" @cust="custShowFunc"> </v-canvas>
+        <v-button :is_show="isShow" @cust="custShowFunc"> </v-button>
     </div>
     <script type="text/javascript" src="./js/othBuild/bundle.js" ></script>
   </body>

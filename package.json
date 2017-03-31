@@ -4,7 +4,8 @@
   "description": "汉子的美化&汉子评判",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "wp" : "./node_modules/.bin/webpack"
   },
   "keywords": [
     "charjudge"

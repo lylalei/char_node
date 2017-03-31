@@ -239,6 +239,7 @@ module.exports = function(canvas, img) {
         },
         mouseup : function(evt) {
             if(evtObj.lock) {
+                evtObj.lock = false;
                 var info = data.getArrData();
                 var len = info.x.length;
                 if(len > 200) {
@@ -251,6 +252,17 @@ module.exports = function(canvas, img) {
                     xy.push(info.y[i]);
                 }
                 funcObj.posAllFix(xy, widthCanvas, heightCanvas, charAreaW, charAreaH);
+                if(config.currNum >= config.Num) {
+                    swal(
+                        '错误',
+                        '汉字已经写完，请点击下一字！',
+                        'error'
+                    );
+                    data.clear();
+                    funcObj.clearCanvas(ctx);
+                    funcObj.drawAllGetChar(config.POS, config.currNum, ctx);
+                    return ;
+                }
                 $.ajax({
                     type: "GET",
                     url: $CONFIG['getret'],
@@ -258,27 +270,21 @@ module.exports = function(canvas, img) {
                     data: "zi=" + config.ZI + "&no=" + config.currNum + "&xy=" + xy.join('/') + '/',
                     jsonpCallback : 'sendData',
                     success : function(msg) {
-                        if(parseInt(msg)) {
+                        if(parseInt(msg)) {//写字成功
                             if(config.currNum >= config.Num) {return ;}
                             config.currNum++;
                             data.clear();
                             funcObj.clearCanvas(ctx);
                             funcObj.drawAllGetChar(config.POS, config.currNum, ctx);
-                        } else {
+                        } else {//写字失败
                             if(config.currNum >= config.Num) {return ;}
+                            $(canvas).transition('shake');
                             data.clear();
                             funcObj.clearCanvas(ctx);
                             funcObj.drawAllGetChar(config.POS, config.currNum, ctx);
                         }
                     }
                 });
-            }
-            evtObj.lock = false;
-        },
-        canWrite : function(evt) {
-            var start = $('#startWrite');
-            if($.trim(start.text()) == '开始') {
-                start.transition('shake');
             }
         }
     };
@@ -293,9 +299,6 @@ module.exports = function(canvas, img) {
         $canvas.on('touchstart', [1], evtObj.mousedown);
         $canvas.on('touchmove', [1], evtObj.mousemove);
         $canvas.on('touchend', evtObj.mouseup);
-
-        $canvas.off('touchstart', evtObj.canWrite);
-        $canvas.off('mousedown', evtObj.canWrite);
     };
 
     // 解析DOM
@@ -330,9 +333,6 @@ module.exports = function(canvas, img) {
         $canvas.off('touchstart', evtObj.mousedown);
         $canvas.off('touchmove', evtObj.mousemove);
         $canvas.off('touchend', evtObj.mouseup);
-
-        $canvas.on('touchstart', evtObj.canWrite);
-        $canvas.on('mousedown', evtObj.canWrite);
     };
 
     var self = {

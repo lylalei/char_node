@@ -42110,6 +42110,7 @@ module.exports = function(bus) {
         template : '\
             <div v-if="!is_show" :style="divStyle">\
                 <img :src="beginIMG" :style="imgStyle"/>\
+                <p :style="preTextStyle" >汉字笔画笔顺测试</p>\
                 <button @click="custShow" :style="beginStyle" :class="beginClass" >开始写字</button>\
                 <p :style="textStyle" >北京语言大学 <br/>大数据与语言教育研究所</p>\
             </div>\
@@ -42150,7 +42151,12 @@ module.exports = function(bus) {
                 },
                 textStyle : {
                     marginTop : '5%',
-                    textAlign : 'center'
+                    textAlign : 'center',
+                    color : 'red'
+                },
+                preTextStyle : {
+                    textAlign : 'center',
+                    fontWeight : 'bolder'
                 },
                 beginClass : 'massive ui button',
                 beginIMG : './img/3.png',
@@ -42824,6 +42830,7 @@ module.exports = function(canvas, img) {
         },
         mouseup : function(evt) {
             if(evtObj.lock) {
+                evtObj.lock = false;
                 var info = data.getArrData();
                 var len = info.x.length;
                 if(len > 200) {
@@ -42836,6 +42843,17 @@ module.exports = function(canvas, img) {
                     xy.push(info.y[i]);
                 }
                 funcObj.posAllFix(xy, widthCanvas, heightCanvas, charAreaW, charAreaH);
+                if(config.currNum >= config.Num) {
+                    swal(
+                        '错误',
+                        '汉字已经写完，请点击下一字！',
+                        'error'
+                    );
+                    data.clear();
+                    funcObj.clearCanvas(ctx);
+                    funcObj.drawAllGetChar(config.POS, config.currNum, ctx);
+                    return ;
+                }
                 $.ajax({
                     type: "GET",
                     url: $CONFIG['getret'],
@@ -42843,27 +42861,21 @@ module.exports = function(canvas, img) {
                     data: "zi=" + config.ZI + "&no=" + config.currNum + "&xy=" + xy.join('/') + '/',
                     jsonpCallback : 'sendData',
                     success : function(msg) {
-                        if(parseInt(msg)) {
+                        if(parseInt(msg)) {//写字成功
                             if(config.currNum >= config.Num) {return ;}
                             config.currNum++;
                             data.clear();
                             funcObj.clearCanvas(ctx);
                             funcObj.drawAllGetChar(config.POS, config.currNum, ctx);
-                        } else {
+                        } else {//写字失败
                             if(config.currNum >= config.Num) {return ;}
+                            $(canvas).transition('shake');
                             data.clear();
                             funcObj.clearCanvas(ctx);
                             funcObj.drawAllGetChar(config.POS, config.currNum, ctx);
                         }
                     }
                 });
-            }
-            evtObj.lock = false;
-        },
-        canWrite : function(evt) {
-            var start = $('#startWrite');
-            if($.trim(start.text()) == '开始') {
-                start.transition('shake');
             }
         }
     };
@@ -42878,9 +42890,6 @@ module.exports = function(canvas, img) {
         $canvas.on('touchstart', [1], evtObj.mousedown);
         $canvas.on('touchmove', [1], evtObj.mousemove);
         $canvas.on('touchend', evtObj.mouseup);
-
-        $canvas.off('touchstart', evtObj.canWrite);
-        $canvas.off('mousedown', evtObj.canWrite);
     };
 
     // 解析DOM
@@ -42915,9 +42924,6 @@ module.exports = function(canvas, img) {
         $canvas.off('touchstart', evtObj.mousedown);
         $canvas.off('touchmove', evtObj.mousemove);
         $canvas.off('touchend', evtObj.mouseup);
-
-        $canvas.on('touchstart', evtObj.canWrite);
-        $canvas.on('mousedown', evtObj.canWrite);
     };
 
     var self = {
@@ -42959,19 +42965,30 @@ module.exports = function(canvas, img) {
 
 /***/ }),
 /* 9 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__components_button_btn__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__components_button_btn___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__components_button_btn__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_write_canvas__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__components_write_canvas___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__components_write_canvas__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_begin_begin__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__components_begin_begin___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__components_begin_begin__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_vue__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_vue___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__lib_vue__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_jquery__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4_jquery___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_4_jquery__);
 
 
-var btn = __webpack_require__(4);
-var write = __webpack_require__(5);
-var begin = __webpack_require__(3);
-var Vue = __webpack_require__(1);
-var $ = __webpack_require__(0);
-window.jQuery = $;//为了使用semantic
+
+
+
+window.jQuery = __WEBPACK_IMPORTED_MODULE_4_jquery___default.a;//为了使用semantic
 __webpack_require__(2);
 
 
-var app = new Vue({
+var app = new __WEBPACK_IMPORTED_MODULE_3__lib_vue___default.a({
     el : '#writing',
     data : {
         isShow : false
@@ -42986,14 +43003,14 @@ var app = new Vue({
     },
     beforeCreate : function() {
         // 总线，组件间的通信
-        var bus = new Vue();
-        begin();
-        btn(bus);
+        var bus = new __WEBPACK_IMPORTED_MODULE_3__lib_vue___default.a();
+        __WEBPACK_IMPORTED_MODULE_2__components_begin_begin___default()();
+        __WEBPACK_IMPORTED_MODULE_0__components_button_btn___default()(bus);
         var image = new Image();
         // image.src = "../../img/model-black.png";//笔刷模型
         image.src = "./img/model-black.png";//笔刷模型
         var styles = {};
-        write(bus, styles, image);
+        __WEBPACK_IMPORTED_MODULE_1__components_write_canvas___default()(bus, styles, image);
     }
 });
 

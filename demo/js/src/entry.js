@@ -1,9 +1,8 @@
-
-var btn = require('./components/button/btn');
-var write = require('./components/write/canvas');
-var begin = require('./components/begin/begin');
-var Vue = require('../lib/vue');
-var $ = require('jquery');
+import btn from './components/button/btn';
+import write from './components/write/canvas';
+import begin from './components/begin/begin';
+import Vue from '../lib/vue';
+import $ from 'jquery';
 window.jQuery = $;//为了使用semantic
 require('../lib/semantic');
 

@@ -6,6 +6,7 @@ module.exports = function(bus) {
         template : '\
             <div v-if="!is_show" :style="divStyle">\
                 <img :src="beginIMG" :style="imgStyle"/>\
+                <p :style="preTextStyle" >汉字笔画笔顺测试</p>\
                 <button @click="custShow" :style="beginStyle" :class="beginClass" >开始写字</button>\
                 <p :style="textStyle" >北京语言大学 <br/>大数据与语言教育研究所</p>\
             </div>\
@@ -46,7 +47,12 @@ module.exports = function(bus) {
                 },
                 textStyle : {
                     marginTop : '5%',
-                    textAlign : 'center'
+                    textAlign : 'center',
+                    color : 'red'
+                },
+                preTextStyle : {
+                    textAlign : 'center',
+                    fontWeight : 'bolder'
                 },
                 beginClass : 'massive ui button',
                 beginIMG : './img/3.png',
